@@ -11,38 +11,31 @@ import (
 	Model "../model"
 )
 
-type Task struct {
-	Model.Task
+var Tasks = Model.Tasks
+
+func GetTasks(w http.ResponseWriter, r *http.Request) {
+	json.NewEncoder(w).Encode(Tasks)
 }
 
-type allTasks []Task
-
-var tasks = allTasks {
-}
-
-func (this *Task) getTasks(w http.ResponseWriter, r *http.Request) {
-	json.NewEncoder(w).Encode(tasks)
-}
-
-func (this *Task) createTask(w http.ResponseWriter, r *http.Request) {
-	var newTask Task
+func CreateTask(w http.ResponseWriter, r *http.Request) {
+	var newTask Model.Task
 	reqBody, err := ioutil.ReadAll(r.Body)
 
 	if err != nil {
-		fmt.Fprintf(w, "Insert a valid data")
+		_, _ = fmt.Fprintf(w, "Insert a valid data")
 	}
 
-	json.Unmarshal(reqBody, &newTask)
-	newTask.ID = len(tasks) + 1
+	_ = json.Unmarshal(reqBody, &newTask)
+	newTask.ID = len(Tasks) + 1
 
-	tasks = append(tasks, newTask)
+	Tasks = append(Tasks, newTask)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(newTask)
 }
 
-func (this *Task) getTask(w http.ResponseWriter, r *http.Request) {
+func GetTask(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	taskID, err := strconv.Atoi(vars["id"])
 
@@ -50,7 +43,7 @@ func (this *Task) getTask(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Invalid ID")
 	}
 
-	for _, task := range tasks {
+	for _, task := range Tasks {
 		if task.ID == taskID {
 			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(task)
@@ -58,10 +51,10 @@ func (this *Task) getTask(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (this *Task) updateTask(w http.ResponseWriter, r *http.Request) {
+func UpdateTask(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	taskID, err := strconv.Atoi(vars["id"])
-	var updateTask Task
+	var updateTask Model.Task
 
 	if err != nil {
 		fmt.Fprintf(w, "Invalid ID")
@@ -74,17 +67,17 @@ func (this *Task) updateTask(w http.ResponseWriter, r *http.Request) {
 	}
 	json.Unmarshal(reqBody, &updateTask)
 
-	for index, task := range tasks {
+	for index, task := range Tasks {
 		if task.ID == taskID {
-			tasks = append(tasks[:index], tasks[index + 1:]...)
+			Tasks = append(Tasks[:index], Tasks[index+1:]...)
 			updateTask.ID = taskID
-			tasks = append(tasks, updateTask)
+			Tasks = append(Tasks, updateTask)
 			fmt.Fprintf(w, "Task %v deleted succesfully", taskID)
 		}
 	}
 }
 
-func (this *Task) deleteTask(w http.ResponseWriter, r *http.Request) {
+func DeleteTask(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	taskID, err := strconv.Atoi(vars["id"])
 
@@ -92,19 +85,15 @@ func (this *Task) deleteTask(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Invalid ID")
 	}
 
-	for index, task := range tasks {
+	for index, task := range Tasks {
 		if task.ID == taskID {
-			tasks = append(tasks[:index], tasks[index + 1:]...)
+			Tasks = append(Tasks[:index], Tasks[index+1:]...)
 			fmt.Fprintf(w, "Task %v updated succesfully", taskID)
 		}
 	}
 
 }
 
-func main() {
-	task := new(Task)
-	task.ID=(len(tasks)+1)
-	task.Name="Task 1"
-	task.Content="Some task"
-	tasks = append(tasks, *task)
+func IndexRoute(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Welcome to my API")
 }
